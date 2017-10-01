@@ -25,7 +25,7 @@ options(htmltools.dir.version = FALSE)
 
 This is a report of the analysis of modeling the variation in the values of mileage per gallon (`mpg`) as a function of the variables in the `mtcars` data set. The following are the findings. 
 
-* Disregarding the effect of other variables, manual transmission gives better mileage performance by 7.24 mpg over automatic transmission. However, in the presence of other variables, this difference isnot extremely large.
+* Disregarding the effect of other variables, manual transmission gives better mileage performance by 7.24 mpg over automatic transmission. However, in the presence of other variables, this difference isnot extremely large, suggesting that transmission type is a confounding variable.
 
 * A very good and parsimonious multivariate linear model explains `mpg` in terms of the weight (`wt`), number of cylinders (`cyl`), horsepower (`hp`), and type of transmission (`am`) of a vehicle.
 
@@ -103,7 +103,7 @@ anova(mod3, mod2)
 
 From the results, we see that `mod2` is not a great improvement over `mod3`. We can therefore choose `mod3` to explain the variation in the mileage per gallon of the vehicles.
 
-Using `mod2` to explain variation in the `mpg`, we can say that when all other variables are held constant:
+Using `mod3` to explain variation in the `mpg`, we can say that when all other variables are held constant:
 
 * A unit increase in the weight of a vehicle significantly (p = 0.0091) reduces milleage per gallon by 2.5 mpg.
 * 6-cylinder vehicles have lower mileage per gallon by 3 mpg over 4-cylinder vehicles. 8-cylinder vehicles have even lower mileage per gallon compared to 6-cylinder vehicles by 2.16 mpg.
@@ -114,7 +114,7 @@ Using `mod2` to explain variation in the `mpg`, we can say that when all other v
 
 With the foregoing analyses, we therefore conclude that:
 
-* Disregarding the effect of other variables, manual transmission gives better mileage performance by 7.24 mpg over automatic transmission. However, in the presence of other variables, this difference is not extremely large.
+* Disregarding the effect of other variables, manual transmission gives better mileage performance by 7.24 mpg over automatic transmission. However, in the presence of other variables, this difference is not extremely large, suggesting that transmission type is a confounding variable.
 
 * A very good and parsimonious multivariate linear model explainsmpgin terms of the weight (wt),number of cylinders (cyl), horsepower (hp), and type of transmission (am) of a vehicle. 
 
