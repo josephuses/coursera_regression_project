@@ -29,6 +29,7 @@ This is a report of the analysis of modeling the variation in the values of mile
 
 * A very good and parsimonious multivariate linear model explains `mpg` in terms of the weight (`wt`), number of cylinders (`cyl`), horsepower (`hp`), and type of transmission (`am`) of a vehicle.
 
+The source for this project can be found at https://github.com/josephuses/coursera_regression_project.
 
 # Exploratory Data Analysis
 
