@@ -1,0 +1,144 @@
+---
+title: "Regression Models Course Project"
+author: "Joseph S. Tabadero, Jr."
+date: '`r Sys.Date()`'
+output:
+  pdf_document:
+    fig_height: 2.5
+    fig_width: 4.5
+    number_sections: true
+    fig_caption: true
+    df_print: kable
+    highlight: tango
+---
+
+
+
+```{r setup, include=FALSE}
+library(tufte)
+# invalidate cache when the tufte version changes
+knitr::opts_chunk$set(tidy = TRUE, cache.extra = packageVersion('tufte'), cache = TRUE, message = FALSE, warning = FALSE, fig.align = "center")
+options(htmltools.dir.version = FALSE)
+```
+
+# Executive Summary
+
+This is a report of the analysis of modeling the variation in the values of mileage per gallon (`mpg`) as a function of the variables in the `mtcars` data set. The following are the findings. 
+
+* Disregarding the effect of other variables, manual transmission gives better mileage performance by 7.24 mpg over automatic transmission. However, in the presence of other variables, this difference isnot extremely large.
+
+* A very good and parsimonious multivariate linear model explains `mpg` in terms of the weight (`wt`), number of cylinders (`cyl`), horsepower (`hp`), and type of transmission (`am`) of a vehicle.
+
+
+# Exploratory Data Analysis
+
+
+
+```{r}
+library(tidyverse)
+library(ggfortify)
+```
+
+Let us first conduct some exploratory data analysis to familiarize ourselves with the `mtcars` data and look at the behavior of some variables, specially `am`.
+
+```{r, fig.margin=TRUE, fig.align='center', fig.width=4, fig.height=4}
+# dataset
+data(mtcars)
+# Mean and five number summaries of mpg variable:
+summary(mtcars$mpg)
+# Convert am, cyl, gear, and vs as factor variables
+mtcarsf <- mutate(mtcars,
+  am = factor(am, labels = c("automatic", "manual")),
+  cyl = factor(cyl),
+  gear = factor(gear),
+  vs = factor(vs, levels = c(0,1), labels =c("V", "S"))
+)
+```
+
+The boxplot of `mpg` according to `am` clearly shows that manual type transmission outperforms automatic transmissions in mileage. We shall now test this hypothesis by building linear models explaining the variation in the values of `mpg`.
+
+
+
+
+# Analyses of Regression Models
+
+The boxplot in Appendix 4.1 suggests that manual has better milleage per gallon than automatic. Although we can conduct a t test to determine if this difference did not happen by chance alone, we  use linear models and regression to explain this difference.
+
+
+```{r}
+mod1 <- lm(mpg ~ am, data = mtcarsf)
+summary(mod1) %>% broom::tidy()
+summary(mod1) %>% broom::glance()
+```
+
+We have quantified this difference to be an increase of 7.25 miles per gallon of manual over automatic transmission vehicles, and this is more extreme to be explained by chance occurrence alone ($p=2.85020743935e-04$) at a significance level of 0.05. However, the R-sqaured of `r summary(mod1)$r.squared` shows that this univariate model explains only `r paste0(round(summary(mod1)$r.squared * 100,2),"%")` of the variation in `mpg`. We can look at other multivariate linear models in order to see if we can improve the model fit. We can try explaining the variations in `mpg` with all of the other variables in `mtcars` but we can speed up our analysis by including only those variables that have a correlation higher than that of `mpg` and `am`.
+
+```{r}
+cors <- cor(mtcars$mpg, mtcars)
+cors[,order(-abs(cors[1,]))] %>% as_tibble()
+submtcars <- mtcarsf %>% select(mpg, wt, cyl, disp, hp, drat, vs, am)
+mod2 <- lm(mpg~wt + cyl + disp + hp + drat + vs + am, data = mtcarsf)
+summary(mod2) %>% broom::tidy()
+summary(mod2) %>% broom::glance()
+```
+
+`mod2` explains 87.33% of the variance in `mpg`. In this model, the weight (`wt`) and horsepower (`hp`) are the only ones showing a significant effect on the variation in `mpg`. 
+
+Looking at the diagnostic plots (Appendix 4.2), the Normal Q-Q plot and Residuals vs Fitted are somewhat okay for `mod2`, however the  Scale-Location plot is showing some causes for worry of violations of homoscedasticity. Overall, `mod2` seems to be a good model. 
+
+We now see if a bidirectional stepwise selection will yield a better model.
+
+```{r}
+mod3 <- step(mod2, direction="both",trace=FALSE)
+summary(mod3) %>% broom::tidy()
+summary(mod3) %>% broom::glance()
+```
+
+`mod3` explains about 86.59% of the the variation in `mpg` but is more parsimonious than `mod2`. In this model, apart from the type of transmission, horsepower, the type of cylinder and weight of the vehicle are used to explain the variation in the milleage of the vehicles. The Normal Q-Q plot and the Residuals vs Fitted plot (Appendix 4.3) look okay, but the Scale-Location plot still show some signs of violations of equality of variance. We will see if adding `disp`, `drat` and `vs` (`mod2`) significantly improves the model fit.
+
+```{r}
+anova(mod3, mod2)
+```
+
+From the results, we see that `mod2` is not a great improvement over `mod3`. We can therefore choose `mod3` to explain the variation in the mileage per gallon of the vehicles.
+
+Using `mod2` to explain variation in the `mpg`, we can say that when all other variables are held constant:
+
+* A unit increase in the weight of a vehicle significantly (p = 0.0091) reduces milleage per gallon by 2.5 mpg.
+* 6-cylinder vehicles have lower mileage per gallon by 3 mpg over 4-cylinder vehicles. 8-cylinder vehicles have even lower mileage per gallon compared to 6-cylinder vehicles by 2.16 mpg.
+* An increase of 1 unit in horsepower results to a decrease of 0.03 mpg and this per unit increase is significant (p = 0.0269).
+* Manual transmission vehicles have higher mileage than automatic transmission vehicles, although this is not significant (p = 0.2064).
+
+# Conclusions
+
+With the foregoing analyses, we therefore conclude that:
+
+* Disregarding the effect of other variables, manual transmission gives better mileage performance by 7.24 mpg over automatic transmission. However, in the presence of other variables, this difference is not extremely large.
+
+* A very good and parsimonious multivariate linear model explainsmpgin terms of the weight (wt),number of cylinders (cyl), horsepower (hp), and type of transmission (am) of a vehicle. 
+
+# Appendix
+
+## Boxplot of `mpg` by `am`
+
+```{r}
+ggplot(mtcarsf, aes(am, mpg)) + 
+  geom_boxplot() + 
+  xlab("Transmission Type") +
+  ylab("Miles Per Gallon") +
+  ggtitle("Automatic vs Manual Transmission")
+```
+
+
+## Diagnostic plots of `mod2`
+
+```{r}
+autoplot(mod2)
+```
+
+
+## Diagnostic plots of `mod3`
+
+```{r}
+autoplot(mod3)
+```
